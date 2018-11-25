@@ -18,7 +18,15 @@ func init() {
 
 	if daemon {
 		cmd := os.Args[0]
-		args := os.Args[2:]
+		args := os.Args[1:]
+		if len(args) == 0 {
+			return
+		}
+
+		for i := 0; i < len(args); i++ {
+
+		}
+
 
 		command := exec.Command(cmd, args...)
 		command.Start()
