@@ -11,6 +11,7 @@ import (
 	"strings"
 	"errors"
 	"proxyGo/server/internal"
+ 	_ "proxyGo/server/daemon"
 )
 
 const netMask = 0xf
@@ -303,7 +304,7 @@ func (s *Server)handleConn(con net.Conn)(err error){
 }
 
 func (s *Server)auth(con net.Conn)error{
-
+	return nil
 }
 
 
@@ -311,8 +312,12 @@ var logger internal.Debug
 
 func main() {
 	  var port int
+
 	  flag.IntVar(&port, "p", 8080, "specify the port")
 	  flag.BoolVar((*bool)(&logger), "debug", false, "specify the port")
+
+	  flag.Parse()
+
 	  s := &Server{Version:5}
 	  s.ListenAndServer("tcp", ":"+strconv.Itoa(port))
 

@@ -1,4 +1,4 @@
-package internal
+package daemon
 
 import (
 	"flag"
@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"fmt"
 )
+
 
 var daemon bool
 
@@ -24,12 +25,12 @@ func init() {
 		}
 
 		for i := 0; i < len(args); i++ {
-
+			if args[i]=="-d" {
+				args = append(args[:i], args[i+2:]...)
+			}
 		}
-
-
 		command := exec.Command(cmd, args...)
-		command.Start()
+		command.Run()
 		fmt.Println("[PID]", command.Process.Pid)
 		os.Exit(0)
 	}
