@@ -27,9 +27,13 @@ const (
 	commandNotSupport
 	addressTypeNotSupport
 	ffUnassigned
-
 )
 
+
+var (
+	username = "slowmoon"
+	password = "9xa24dwsw"
+)
 
 
 type Server struct {
@@ -248,7 +252,7 @@ func (s *Server)request(conn net.Conn, reader *bufio.Reader)(err error){
 	logger.Printf("request %+v", req)
 	switch req.Command {
 	case 0x1:
-		return  s.connect(conn, req)
+		return s.connect(conn, req)
 	default:
 		return s.error(conn, commandNotSupport)
 	}
@@ -293,18 +297,57 @@ func (s *Server)handleConn(con net.Conn)(err error){
 		return err
 	}
 
-	//_, err = con.Write([]byte{s.Version, 0})      //4，返回无需继续认证
-	_, err = con.Write([]byte{s.Version, 0x02})      //4，返回，需要用户名密码验证
+	_, err = con.Write([]byte{s.Version, 0})      //4，返回无需继续认证
 
-
-	s.request(con, reader)
+/*	_, err = con.Write([]byte{s.Version, 0x02})      //4，返回，需要用户名密码验证
+	s.auth(con)              //开始验证
+*/
+    s.request(con, reader)
 
 	return
-
 }
 
-func (s *Server)auth(con net.Conn)error{
-	return nil
+
+
+type Auth struct {
+	Version byte
+	User string
+	Password string
+}
+
+func (s *Server)authResp(con net.Conn, cmd byte)(err error){
+	_, err = con.Write([]byte{0x01, cmd})
+	return
+}
+
+
+func (s *Server)auth(con net.Conn)(err error){
+	buf := make([]byte, 200)
+
+	n, err := con.Read(buf)
+	if err!=nil &&err!=io.EOF{
+		logger.Println("user password authentication fail!")
+		s.authResp(con, 0x01)
+		return
+	}
+    fmt.Printf("%c", buf[:n])
+
+	auth := &Auth{}
+	index := 0
+	auth.Version  = buf[index]
+	index++
+	userLength := int(buf[index])
+	index++
+	auth.User = string(buf[index:index+userLength])
+
+	fmt.Println(auth.Version, auth.User)
+
+	if username != auth.User  {    //验证用户名密码是否正确
+	logger.Println("auth fail, username or password is not correct")
+		return s.authResp(con, 0x01)
+	}
+
+	return s.authResp(con, 0x00)              //正确的话，通过验证
 }
 
 
